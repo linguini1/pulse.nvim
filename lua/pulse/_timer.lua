@@ -18,6 +18,8 @@
 --- @field change_interval fun(interval: integer): nil Changes the timer interval
 --- @field remaining fun(): integer Returns the remaining time in minutes
 --- @field teardown fun(): nil Tears down the timer
+--- @field enabled fun(): boolean Returns the state of the timer (enabled/disabled)
+--- @field toggle fun(): boolean Toggles the timer to be enabled or disabled depending on its current state
 
 --- Creates a new timer with the specified name, minute interval and timer message.
 --- @param name string The name used to refer to this timer
@@ -33,6 +35,10 @@ function Timer(name, interval, message)
     self._timer_cb = function() vim.api.nvim_notify(self.message, vim.log.levels.WARN, {}) end
 
     self._timer:start(interval * 60000, interval * 60000, vim.schedule_wrap(self._timer_cb))
+
+    --- Returns the state of the timer (enabled/disabled).
+    --- @return boolean
+    self.enabled = function() return self._enabled end
 
     --- Enables the timer.
     --- @return nil
@@ -58,10 +64,21 @@ function Timer(name, interval, message)
         vim.print("Timer " .. self.name .. " disabled.")
     end
 
+    --- Toggles the timer to be enabled or disabled depending on its current state
+    --- @return boolean enabled The timer's current state (true for enabled, false for disabled).
+    self.toggle = function()
+        if self._enabled then
+            self.disable()
+            return self._enabled
+        end
+        self.enable()
+        return self._enabled
+    end
+
     --- Changes the timer interval. Applies to next timer iteration.
-    --- @param interval integer The new interval in minutes
+    --- @param intvl integer The new interval in minutes
     --- @return nil
-    self.change_interval = function(interval) self._timer:set_repeat(interval * 60000) end
+    self.change_interval = function(intvl) self._timer:set_repeat(intvl * 60000) end
 
     --- Gets the remaining time left on the timer in minutes
     --- @return integer time_remaining The remaining time in minutes before the timer ends

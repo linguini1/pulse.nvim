@@ -52,31 +52,18 @@ M.setup = function(timers)
     -- Command to view all timers (otherwise telescope picker)
     local has_telescope, _ = pcall(require, "telescope")
 
-    --- Displays a list of timers
-    --- @return nil
-    local pick_timers = function()
-        local function enabled(name)
-            if M._timers[name]._enabled then
-                return "enabled"
-            else
-                return "disabled"
-            end
-        end
-        for name, _ in pairs(M._timers) do
-            vim.print(name .. ": " .. enabled(name))
-        end
-    end
-
     if has_telescope then
         local pickers = require("telescope.pickers")
         local finders = require("telescope.finders")
         local config = require("telescope.config").values
-        pick_timers = function(opts)
+        local actions = require("telescope.actions")
+        local action_state = require("telescope.actions.state")
+        M.pick_timers = function(opts)
             local function enabled(name)
-                if M._timers[name]._enabled then
-                    return "ff0000"
+                if M._timers[name].enabled() then
+                    return "#ff0000"
                 else
-                    return "00ff00"
+                    return "#00ff00"
                 end
             end
 
@@ -92,7 +79,7 @@ M.setup = function(timers)
                     finder = finders.new_table({
                         results = timer_results,
                     }),
-                    entry_make = function(entry)
+                    entry_maker = function(entry)
                         return {
                             value = entry,
                             display = entry[1],
@@ -100,12 +87,20 @@ M.setup = function(timers)
                         }
                     end,
                     sorter = config.generic_sorter(opts),
+                    attach_mappings = function(prompt_bufnr, _)
+                        actions.select_default:replace(function()
+                            actions.close(prompt_bufnr)
+                            local selection = action_state.get_selected_entry()
+                            M._timers[selection[1]].toggle()
+                        end)
+                        return true
+                    end,
                 })
                 :find()
         end
     end
 
-    vim.api.nvim_create_user_command("PulseList", pick_timers, { desc = "Displays a list of all the added timers." })
+    vim.api.nvim_create_user_command("PulseList", M.pick_timers, { desc = "Displays a list of all the added timers." })
 end
 
 --- Adds a timer to the listing.
@@ -123,6 +118,21 @@ M.remove = function(timer)
         M._timers[timer] = nil
     else
         vim.notify("Timer " .. timer .. "does not exist.", vim.log.levels.ERROR, {})
+    end
+end
+
+--- Displays a list of timers
+--- @return nil
+M.pick_timers = function()
+    local function enabled(name)
+        if M._timers[name].enabled() then
+            return "enabled"
+        else
+            return "disabled"
+        end
+    end
+    for name, _ in pairs(M._timers) do
+        vim.print(name .. ": " .. enabled(name))
     end
 end
 
