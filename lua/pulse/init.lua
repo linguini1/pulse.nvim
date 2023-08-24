@@ -106,7 +106,7 @@ M.setup = function(timers)
                         actions.select_default:replace(function()
                             actions.close(prompt_bufnr)
                             local selection = action_state.get_selected_entry()
-                            M._timers[selection[1]].toggle()
+                            M._timers[selection.value[1]].toggle()
                         end)
                         return true
                     end,
