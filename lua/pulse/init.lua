@@ -6,8 +6,15 @@ M._timers = {}
 
 --- @class TimerData
 --- @field name string The name used to refer to this timer
---- @field message string The timer message which will be displayed when the timer ends
 --- @field interval integer The timer interval in milliseconds
+--- @field message string The timer message which will be displayed when the timer ends
+
+--- Constructs a timer data table
+--- @param name string The name used to refer to this timer
+--- @param interval integer The timer interval in milliseconds
+--- @param message string The timer message which will be displayed when the timer ends
+--- @return TimerData
+function Pulse(name, interval, message) return { name = name, interval = interval, message = message } end
 
 --- Initializes the pulse.nvim plugin
 --- @param timers TimerData[] An array of timer data which will be used to set up the timers
@@ -150,11 +157,5 @@ M.pick_timers = function()
         vim.print(name .. ": " .. enabled(name))
     end
 end
-
-M.setup({
-    { name = "rest", interval = 45, message = "Rest your eyes!" },
-    { name = "drink", interval = 15, message = "Drink water!" },
-    { name = "walk", interval = 120, message = "Walk the dog!" },
-})
 
 return M
