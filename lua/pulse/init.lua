@@ -4,26 +4,13 @@ local M = {}
 --- @type Timer[]
 M._timers = {}
 
---- @class TimerData
---- @field name string The name used to refer to this timer
---- @field interval integer The timer interval in milliseconds
---- @field message string The timer message which will be displayed when the timer ends
-
---- Constructs a timer data table
---- @param name string The name used to refer to this timer
---- @param interval integer The timer interval in milliseconds
---- @param message string The timer message which will be displayed when the timer ends
---- @return TimerData
-function Pulse(name, interval, message) return { name = name, interval = interval, message = message } end
+--- @class Options
+--- @field level string The log level of the notifications timers produce when they go off.
 
 --- Initializes the pulse.nvim plugin
---- @param timers TimerData[] An array of timer data which will be used to set up the timers
 --- @return nil
-M.setup = function(timers)
-    -- Initialize timers
-    for _, timer_data in ipairs(timers) do
-        M.add(timer_data)
-    end
+M.setup = function(opts)
+    M.config = opts or { level = vim.log.levels.INFO }
 
     -- User commands for interacting with the pulse module
     vim.api.nvim_create_user_command("PulseEnable", function(args)
@@ -66,8 +53,8 @@ M.setup = function(timers)
         local actions = require("telescope.actions")
         local action_state = require("telescope.actions.state")
         local entry_display = require("telescope.pickers.entry_display")
-        M.pick_timers = function(opts)
-            opts = opts or {}
+        M.pick_timers = function(options)
+            options = options or {}
 
             local displayer = entry_display.create({
                 separator = " ",
@@ -96,7 +83,7 @@ M.setup = function(timers)
             end
 
             pickers
-                .new(opts, {
+                .new(options, {
                     prompt_title = "Pulses",
                     finder = finders.new_table({
                         results = timer_results,
@@ -108,7 +95,7 @@ M.setup = function(timers)
                             }
                         end,
                     }),
-                    sorter = config.generic_sorter(opts),
+                    sorter = config.generic_sorter(options),
                     attach_mappings = function(prompt_bufnr, _)
                         actions.select_default:replace(function()
                             actions.close(prompt_bufnr)
@@ -126,9 +113,10 @@ M.setup = function(timers)
 end
 
 --- Adds a timer to the listing.
---- @param timer TimerData
---- @return nil
-M.add = function(timer) M._timers[timer.name] = Timer(timer.name, timer.interval, timer.message) end
+--- @param name string The name used to refer to this timer
+--- @param interval integer The timer interval in milliseconds
+--- @param message string The timer message which will be displayed when the timer ends
+M.add = function(name, interval, message) M._timers[name] = Timer(name, interval, message, M.config.level) end
 
 --- Removes a timer from the listing.
 --- @param timer string The timer name

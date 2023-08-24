@@ -25,14 +25,16 @@
 --- @param name string The name used to refer to this timer
 --- @param interval integer The timer interval in minutes
 --- @param message string The timer message which will be displayed when the timer ends
+--- @param level string | nil The log level of the notification produced when the timer ends
 --- @return Timer
-function Timer(name, interval, message)
+function Timer(name, interval, message, level)
     local self = {}
     self.name = name
     self.message = message
+    self._level = level or vim.log.levels.INFO
     self._enabled = true
     self._timer = vim.loop.new_timer()
-    self._timer_cb = function() vim.api.nvim_notify(self.message, vim.log.levels.WARN, {}) end
+    self._timer_cb = function() vim.api.nvim_notify(self.message, self._level, {}) end
 
     self._timer:start(interval * 60000, interval * 60000, vim.schedule_wrap(self._timer_cb))
 
