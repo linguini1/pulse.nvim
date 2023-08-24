@@ -58,34 +58,49 @@ M.setup = function(timers)
         local config = require("telescope.config").values
         local actions = require("telescope.actions")
         local action_state = require("telescope.actions.state")
+        local entry_display = require("telescope.pickers.entry_display")
         M.pick_timers = function(opts)
-            local function enabled(name)
-                if M._timers[name].enabled() then
-                    return "#ff0000"
-                else
-                    return "#00ff00"
+            opts = opts or {}
+
+            local displayer = entry_display.create({
+                separator = " ",
+                items = {
+                    { remaining = true },
+                    { width = 5 },
+                },
+            })
+
+            local make_display = function(entry)
+                local hl = "TelescopeResultsComment"
+                local time_hl = "TelescopeResultsComment"
+                if entry.value[2] then
+                    hl = "TelescopeResultsIdentifier"
+                    time_hl = "TelescopeResultsNormal"
                 end
+                return displayer({
+                    { entry.value[1], hl },
+                    { string.format("%02d:%02d", math.floor(entry.value[3] / 60), entry.value[3] % 60), time_hl },
+                })
             end
 
             local timer_results = {}
             for name, _ in pairs(M._timers) do
-                table.insert(timer_results, name)
+                table.insert(timer_results, { name, M._timers[name].enabled(), M._timers[name].remaining() })
             end
 
-            opts = opts or {}
             pickers
                 .new(opts, {
                     prompt_title = "Pulses",
                     finder = finders.new_table({
                         results = timer_results,
+                        entry_maker = function(entry)
+                            return {
+                                value = entry,
+                                display = make_display,
+                                ordinal = entry[3],
+                            }
+                        end,
                     }),
-                    entry_maker = function(entry)
-                        return {
-                            value = entry,
-                            display = entry[1],
-                            ordinal = entry[1],
-                        }
-                    end,
                     sorter = config.generic_sorter(opts),
                     attach_mappings = function(prompt_bufnr, _)
                         actions.select_default:replace(function()
@@ -139,6 +154,7 @@ end
 M.setup({
     { name = "rest", interval = 45, message = "Rest your eyes!" },
     { name = "drink", interval = 15, message = "Drink water!" },
+    { name = "walk", interval = 120, message = "Walk the dog!" },
 })
 
 return M
