@@ -17,7 +17,8 @@ pulse.setup({opts})                                              *pulse.setup()*
 
     Usage: ~
     >lua
-        require("pulse").setup({
+        local pulse = require("pulse")
+        pulse.setup({
             level = vim.log.levels.INFO,
         })
 <
