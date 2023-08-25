@@ -1,0 +1,170 @@
+==============================================================================
+INTRODUCTION                                                        *pulse.nvim*
+
+Pulse.nvim is a plugin for creating and managing personal timers. If you have 
+|telescope.nvim| installed, pulse will also make use of its features for
+managing your timers.
+
+pulse.setup({opts})                                              *pulse.setup()*
+    Setup function to be run by user. Configures the defaults of pulse.
+
+    Parameters: ~
+      - {opts}  Options dict (optional):
+                - level (optional) Pick from a level listed in |vim.log.levels|
+
+    Return: ~
+        nil
+
+    Usage: ~
+    >lua
+        require("pulse").setup({
+            level = vim.log.levels.INFO,
+        })
+<
+pulse.add({name}, {interval}, {message}, {enabled})                *pulse.add()*
+    Add a new timer to the pulse timer listing. Adding a timer with a name
+    already associated with an existing timer will result in an error, and the
+    function will return false.
+
+    Parameters: ~
+      - {name} (string) The name of the timer.
+      - {interval} (integer) The timer's interval (how often it will go off)
+        in minutes.
+      - {message} (string) The message passed to |vim.notify| when the timer
+        goes off.
+      - {enabled} (boolean) True to enable the timer as soon as it's added.
+
+    Return: ~
+        (boolean) True if the timer was added successfully, false if a
+        timer with the same name already exists.
+
+    Usage: ~
+    >lua
+        local pulse = require("pulse")
+        pulse.add("break-timer", 60, "Take a break!", true)
+<
+pulse.remove({timer})                                           *pulse.remove()*
+    Remove an existing timer from the pulse timer listing. Calling remove with
+    a timer that does not exist will result in an error, and the function will
+    return false.
+
+    Parameters: ~
+        - {timer} (string) The name of the timer to be removed.
+
+    Return: ~
+        (boolean) True if the timer was removed successfully, false if no
+        timer with the given name exists.
+
+    Usage: ~
+    >lua
+        -- Assuming a timer named 'break-timer' has already been added
+        local pulse = require("pulse")
+        pulse.remove("break-timer")
+<
+==============================================================================
+COMMANDS                                                        *pulse-commands*
+
+Pulse.nvim also comes with commands out of the box for managing timers.
+
+pulse.enable({timer})                                           *pulse.enable()*
+    Enables the timer with the matching name.
+
+    Parameters: ~
+      - {timer} (string) The name of the timer to be enabled.
+
+    Return: ~
+        (boolean) True if the timer was enabled successfully, false otherwise.
+
+    Usage: ~
+        >lua
+        local pulse = require("pulse")
+        local success = pulse.enable("break-timer")
+        if not success then
+            vim.print("Something went wrong!")
+        end
+<
+
+:PulseEnable {timer}                                              *:PulseEnable*
+    Enables the timer with the matching name, otherwise reports failure. >vim
+    :PulseEnable break-timer
+<
+pulse.disable({timer})                                         *pulse.disable()*
+    Disables the timer with the matching name.
+
+    Parameters: ~
+      - {timer} (string) The name of the timer to be disabled.
+
+    Return: ~
+        (boolean) True if the timer was disabled successfully, false otherwise.
+
+    Usage: ~
+        >lua
+        local pulse = require("pulse")
+        local success = pulse.disable("break-timer")
+        if not success then
+            vim.print("Something went wrong!")
+        end
+<
+:PulseDisable {timer}                                            *:PulseDisable*
+    Disables the timer with the matching name, otherwise reports failure. >vim
+    :PulseDisable break-timer
+<
+pulse.status({timer})                                           *pulse.status()*
+    Returns the amount of time remaining before the specified timer goes off,
+    in minutes.
+
+    Parameters: ~
+      - {timer} (string) The name of the timer to check the status of.
+
+    Return: ~
+      - hours (integer) The time remaining before the timer goes off in
+        complete hours - minutes. Will be -1 if a timer with a matching name
+        does not exist.
+      - minutes (integer) The time remaining before the timer goes off in
+        odd minutes. Will be -1 if a timer with a matching name does not
+        exist.
+
+    Usage: ~
+        >lua
+        local pulse = require("pulse")
+        local hours, minutes = pulse.status("break-timer")
+        if hours == -1 then
+            vim.print("Timer does not exist!")
+        else
+            vim.print("Time remaining: " .. hours .. ":" .. minutes)
+        end
+
+:PulseStatus {timer}                                              *:PulseStatus*
+    Displays the remaining time on the timer in HH:MM format. >vim
+    :PulseStatus break-timer
+<
+pulse.pick_timers({opts})                                  *pulse.pick_timers()*
+    Displays a list of all added timers with their enabled/disabled status and
+    time remaining in HH:MM format. If |telescope.nvim| is installed, the picker
+    will use telescope. Otherwise, it will be vim printed.
+
+    Parameters: ~
+      - {opts} (optional) The options to pass to the picker (see
+        |telescope.builtin.pickers()|)
+
+    Return: ~
+        nil
+
+    Usage: ~
+    >lua
+        local pulse = require("pulse")
+        pulse.pick_timers()
+< 
+        Hitting enter on a timer entry in the Telescope picker will toggle the
+        timer's enabled status.
+
+:PulseList {timer}                                                  *:PulseList*
+    Displays list of all added timers with their enabled/disabled status and
+    time remaining in HH:MM format. If |telescope.nvim| is installed, the
+    picker will use telescope. Otherwise, it will be vim printed. >vim
+    :PulseStatus break-timer
+<
+    Hitting enter on a timer entry in the Telescope picker will toggle the
+    timer's enabled status.
+
+ vim:tw=78:ts=8:ft=help:norl:

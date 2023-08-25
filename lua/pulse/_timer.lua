@@ -6,6 +6,12 @@
 --- @field set_repeat function
 --- @field get_repeat function
 
+--- Returns the hours and minutes from just minutes.
+--- @param minutes integer The minutes to be converted.
+--- @return integer hours The hours.
+--- @return integer minutes The minutes.
+local function hh_mm(minutes) return math.floor(minutes / 60), minutes % 60 end
+
 --- @class Timer
 --- @field name string The name used to refer to this timer
 --- @field message string The timer message which will be displayed when the timer ends
@@ -13,21 +19,22 @@
 --- @field _timer VimTimer The vim timer which is used to keep this timer going
 --- @field _timer_cb function The callback function which is executed when the timer ends
 --- @field __index Timer The vim timer which is used to keep this timer going
---- @field enable fun(): nil Enables the timer
---- @field disable fun(): nil Disables the timer
---- @field change_interval fun(interval: integer): nil Changes the timer interval
---- @field remaining fun(): integer Returns the remaining time in minutes
---- @field teardown fun(): nil Tears down the timer
 --- @field enabled fun(): boolean Returns the state of the timer (enabled/disabled)
+--- @field enable fun(): boolean Enables the timer
+--- @field disable fun(): boolean Disables the timer
+--- @field change_interval fun(interval: integer): nil Changes the timer interval
+--- @field remaining fun(): integer, integer Returns the remaining time in hours & minutes
+--- @field teardown fun(): nil Tears down the timer
 --- @field toggle fun(): boolean Toggles the timer to be enabled or disabled depending on its current state
 
 --- Creates a new timer with the specified name, minute interval and timer message.
 --- @param name string The name used to refer to this timer
 --- @param interval integer The timer interval in minutes
 --- @param message string The timer message which will be displayed when the timer ends
+--- @param enabled boolean True if the timer should start on creation, false otherwise
 --- @param level string | nil The log level of the notification produced when the timer ends
 --- @return Timer
-function Timer(name, interval, message, level)
+function Timer(name, interval, message, enabled, level)
     local self = {}
     self.name = name
     self.message = message
@@ -38,36 +45,25 @@ function Timer(name, interval, message, level)
 
     self._timer:start(interval * 60000, interval * 60000, vim.schedule_wrap(self._timer_cb))
 
-    --- Returns the state of the timer (enabled/disabled).
-    --- @return boolean
+    --- @return boolean state True if the timer is enabled, false otherwise
     self.enabled = function() return self._enabled end
 
-    --- Enables the timer.
-    --- @return nil
+    --- @return boolean success True if the timer was enabled successfully
     self.enable = function()
-        if self._enabled then
-            vim.print("Timer " .. self.name .. " already enabled.")
-            return
-        end
+        if self._enabled then return false end
         self._timer:again()
         self._enabled = true
-        vim.print("Timer " .. self.name .. "enabled.")
+        return true
     end
 
-    --- Disables the timer.
-    --- @return nil
+    --- @return boolean success True if the timer was disabled successfully
     self.disable = function()
-        if not self._enabled then
-            vim.print("Timer " .. self.name .. " already disabled.")
-            return
-        end
+        if not self._enabled then return false end
         self._timer:stop()
         self._enabled = false
-        vim.print("Timer " .. self.name .. " disabled.")
+        return true
     end
 
-    --- Toggles the timer to be enabled or disabled depending on its current state
-    --- @return boolean enabled The timer's current state (true for enabled, false for disabled).
     self.toggle = function()
         if self._enabled then
             self.disable()
@@ -77,21 +73,22 @@ function Timer(name, interval, message, level)
         return self._enabled
     end
 
-    --- Changes the timer interval. Applies to next timer iteration.
     --- @param intvl integer The new interval in minutes
-    --- @return nil
     self.change_interval = function(intvl) self._timer:set_repeat(intvl * 60000) end
 
-    --- Gets the remaining time left on the timer in minutes
-    --- @return integer time_remaining The remaining time in minutes before the timer ends
-    self.remaining = function() return math.ceil(self._timer:get_repeat() / 60000) end
+    --- @return integer minutes_remaining The odd minutes left before the timer ends
+    --- @return integer hours_remaining The hours - minutes left before the timer ends
+    self.remaining = function()
+        local minutes = math.ceil(self._timer:get_repeat() / 60000)
+        return hh_mm(minutes)
+    end
 
-    --- Prepares the timer for deletion
-    --- @return nil
     self.teardown = function()
         self._timer:stop()
         self._timer = nil
         self._enabled = false
     end
+
+    if not enabled then self.disable() end -- Start disabled
     return self
 end

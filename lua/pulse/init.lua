@@ -1,4 +1,11 @@
 require("pulse._timer")
+
+--- Returns a string formatted as 'HH:MM'
+--- @param minutes integer The minutes.
+--- @param hours integer The hours.
+--- @return string time The time formatted as 'HH:MM'
+local function timer_format(hours, minutes) return string.format("%02d:%02d", hours, minutes) end
+
 local M = {}
 
 --- @type Timer[]
@@ -14,33 +21,42 @@ M.setup = function(opts)
 
     -- User commands for interacting with the pulse module
     vim.api.nvim_create_user_command("PulseEnable", function(args)
-        local timer = M._timers[args.args]
-        if not timer then
-            vim.print("No timer named '" .. args.args .. "'.")
+        local success = M.enable(args.arg)
+
+        if success then
+            vim.print("Timer '" .. args.arg("' enabled."))
             return
         end
-        timer.enable()
+
+        if not success and not M._timers[args.arg] then
+            vim.print("Timer '" .. args.arg .. "' does not exist.")
+            return
+        end
+        vim.print("Timer '" .. args.arg .. "' is already enabled.")
     end, { nargs = 1, desc = "Enables the timer with the matching name." })
 
     vim.api.nvim_create_user_command("PulseDisable", function(args)
-        local timer = M._timers[args.args]
-        if not timer then
-            vim.print("No timer named '" .. args.args .. "'.")
+        local success = M.disable(args.arg)
+
+        if success then
+            vim.print("Timer '" .. args.arg("' disabled."))
             return
         end
-        timer.disable()
+
+        if not success and not M._timers[args.arg] then
+            vim.print("Timer '" .. args.arg .. "' does not exist.")
+            return
+        end
+        vim.print("Timer '" .. args.arg .. "' is already disabled.")
     end, { nargs = 1, desc = "Disables the timer with the matching name." })
 
     vim.api.nvim_create_user_command("PulseStatus", function(args)
-        local timer = M._timers[args.args]
-        if not timer then
+        local r_hours, r_minutes = M.status(args.arg)
+        if r_hours == -1 then
             vim.print("No timer named '" .. args.args .. "'.")
             return
         end
-        local remaining = timer.remaining()
-        local plural = ""
-        if remaining > 1 then plural = "s" end
-        vim.print(remaining .. " minute" .. plural .. " remaining on '" .. timer.name .. "' timer.")
+        vim.print(timer_format(r_hours, r_minutes) .. " remaining on '" .. args.arg .. "' timer.")
     end, { nargs = 1, desc = "Prints the remaining time left on the specified timer." })
 
     -- Command to view all timers (otherwise telescope picker)
@@ -73,7 +89,7 @@ M.setup = function(opts)
                 end
                 return displayer({
                     { entry.value[1], hl },
-                    { string.format("%02d:%02d", math.floor(entry.value[3] / 60), entry.value[3] % 60), time_hl },
+                    { string.format("%02d:%02d", entry.value[3], entry.value[4]), time_hl },
                 })
             end
 
@@ -116,24 +132,63 @@ end
 --- @param name string The name used to refer to this timer
 --- @param interval integer The timer interval in milliseconds
 --- @param message string The timer message which will be displayed when the timer ends
-M.add = function(name, interval, message) M._timers[name] = Timer(name, interval, message, M.config.level) end
+--- @param enabled boolean True if the timer should start on creation, false otherwise
+--- @return boolean success False if a timer with the same name exists, true otherwise
+M.add = function(name, interval, message, enabled)
+    if M._timers[name] then
+        vim.notify("Timer with name " .. name .. " already exists!", vim.log.levels.ERROR)
+        return false
+    end
+    M._timers[name] = Timer(name, interval, message, enabled, M.config.level)
+    return true
+end
 
 --- Removes a timer from the listing.
 --- @param timer string The timer name
---- @return nil
+--- @return boolean success True if the timer was removed, false if the timer did not exist
 M.remove = function(timer)
     local timer_obj = M._timers[timer]
-    if timer then
+    if not timer then
+        vim.notify("Timer " .. timer .. "does not exist.", vim.log.levels.ERROR, {})
+        return false
+    else
         timer_obj.teardown()
         M._timers[timer] = nil
-    else
-        vim.notify("Timer " .. timer .. "does not exist.", vim.log.levels.ERROR, {})
+        return true
     end
+end
+
+--- Enables a timer in the listing
+--- @param timer string The timer name
+--- @return boolean success True if the timer was enabled successfully.
+M.enable = function(timer)
+    local timer_obj = M._timers[timer]
+    if not timer then return false end
+    return timer_obj.enable()
+end
+
+--- Disables a timer in the listing
+--- @param timer string The timer name
+--- @return boolean success True if the timer was disabled successfully.
+M.disable = function(timer)
+    local timer_obj = M._timers[timer]
+    if not timer_obj then return false end
+    return timer_obj.disable()
+end
+
+--- Gets the remaining time of a given timer (if no such timer, returns (-1, -1))
+--- @param timer string The timer name
+--- @return integer minutes_remaining The odd minutes left before the timer ends
+--- @return integer hours_remaining The hours - minutes left before the timer ends
+M.status = function(timer)
+    local timer_obj = M._timers[timer]
+    if timer_obj then return timer_obj.remaining() end
+    return -1, -1
 end
 
 --- Displays a list of timers
 --- @return nil
-M.pick_timers = function()
+M.pick_timers = function(_)
     local function enabled(name)
         if M._timers[name].enabled() then
             return "enabled"
@@ -142,7 +197,7 @@ M.pick_timers = function()
         end
     end
     for name, _ in pairs(M._timers) do
-        vim.print(name .. ": " .. enabled(name))
+        vim.print(name .. " - " .. enabled(name) .. " - " .. timer_format(M._timers[name].remaining()))
     end
 end
 

@@ -1,0 +1,13 @@
+:PulseDisable	pulse.txt	/*:PulseDisable*
+:PulseEnable	pulse.txt	/*:PulseEnable*
+:PulseList	pulse.txt	/*:PulseList*
+:PulseStatus	pulse.txt	/*:PulseStatus*
+pulse-commands	pulse.txt	/*pulse-commands*
+pulse.add()	pulse.txt	/*pulse.add()*
+pulse.disable()	pulse.txt	/*pulse.disable()*
+pulse.enable()	pulse.txt	/*pulse.enable()*
+pulse.nvim	pulse.txt	/*pulse.nvim*
+pulse.pick_timers()	pulse.txt	/*pulse.pick_timers()*
+pulse.remove()	pulse.txt	/*pulse.remove()*
+pulse.setup()	pulse.txt	/*pulse.setup()*
+pulse.status()	pulse.txt	/*pulse.status()*
