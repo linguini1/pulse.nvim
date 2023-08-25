@@ -6,7 +6,7 @@ for managing your timers.
 
 ## Getting Started
 
-Using [packer.nvim]()
+Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
 
 ```lua
 use { "linguini1/pulse.nvim" }
