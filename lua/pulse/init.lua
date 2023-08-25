@@ -21,42 +21,42 @@ M.setup = function(opts)
 
     -- User commands for interacting with the pulse module
     vim.api.nvim_create_user_command("PulseEnable", function(args)
-        local success = M.enable(args.arg)
+        local success = M.enable(args.args)
 
         if success then
-            vim.print("Timer '" .. args.arg("' enabled."))
+            vim.print("Timer '" .. args.args .. "' enabled.")
             return
         end
 
-        if not success and not M._timers[args.arg] then
-            vim.print("Timer '" .. args.arg .. "' does not exist.")
+        if not success and not M._timers[args.args] then
+            vim.print("Timer '" .. args.args .. "' does not exist.")
             return
         end
-        vim.print("Timer '" .. args.arg .. "' is already enabled.")
+        vim.print("Timer '" .. args.args .. "' is already enabled.")
     end, { nargs = 1, desc = "Enables the timer with the matching name." })
 
     vim.api.nvim_create_user_command("PulseDisable", function(args)
-        local success = M.disable(args.arg)
+        local success = M.disable(args.args)
 
         if success then
-            vim.print("Timer '" .. args.arg("' disabled."))
+            vim.print("Timer '" .. args.args .. "' disabled.")
             return
         end
 
-        if not success and not M._timers[args.arg] then
-            vim.print("Timer '" .. args.arg .. "' does not exist.")
+        if not success and not M._timers[args.args] then
+            vim.print("Timer '" .. args.args .. "' does not exist.")
             return
         end
-        vim.print("Timer '" .. args.arg .. "' is already disabled.")
+        vim.print("Timer '" .. args.args .. "' is already disabled.")
     end, { nargs = 1, desc = "Disables the timer with the matching name." })
 
     vim.api.nvim_create_user_command("PulseStatus", function(args)
-        local r_hours, r_minutes = M.status(args.arg)
+        local r_hours, r_minutes = M.status(args.args)
         if r_hours == -1 then
             vim.print("No timer named '" .. args.args .. "'.")
             return
         end
-        vim.print(timer_format(r_hours, r_minutes) .. " remaining on '" .. args.arg .. "' timer.")
+        vim.print(timer_format(r_hours, r_minutes) .. " remaining on '" .. args.args .. "' timer.")
     end, { nargs = 1, desc = "Prints the remaining time left on the specified timer." })
 
     -- Command to view all timers (otherwise telescope picker)
