@@ -36,3 +36,7 @@ pulse.add("break-timer", 60, "Take a break!", true)
 ## Documentation
 
 See `:h pulse.nvim` for documentation.
+
+## Attribution
+
+This plugin was inspired by [stand.nvim](https://github.com/mvllow/stand.nvim), a plugin which reminds you to stand.
