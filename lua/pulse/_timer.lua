@@ -2,6 +2,7 @@
 --- @field start function
 --- @field stop function
 --- @field again function
+--- @field close function
 --- @field get_due_in function
 --- @field set_repeat function
 --- @field get_repeat function
@@ -84,7 +85,7 @@ function Timer(name, interval, message, enabled, level)
     end
 
     self.teardown = function()
-        self._timer:stop()
+        self._timer:close()
         self._timer = nil
         self._enabled = false
     end
