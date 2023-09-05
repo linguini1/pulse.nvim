@@ -1,4 +1,10 @@
-# pulse.nvim
+<div align="center">
+    <h1>
+        <img style="margin: 0 0 -15px 0;" src="https://cdn-icons-png.flaticon.com/512/5523/5523525.png" width="50px" />
+        pulse.nvim
+    </h1>
+    <h5>Easily manageable timers to keep on track while coding.</h5>
+</div>
 
 Pulse.nvim is a plugin for creating and managing personal timers. If you have
 [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) installed, pulse will also make use of its features
@@ -15,6 +21,7 @@ use { "linguini1/pulse.nvim" }
 ```
 
 Using [lazy.nvim](https://github.com/folke/lazy.nvim)
+
 ```lua
 {
     "linguini1/pulse.nvim",
