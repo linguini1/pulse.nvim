@@ -147,12 +147,12 @@ end
 --- @param timer string The timer name
 --- @return boolean success True if the timer was removed, false if the timer did not exist
 M.remove = function(timer)
-    local timer_obj = M._timers[timer]
-    if not timer then
+    local obj = M._timers[timer]
+    if not obj then
         vim.notify("Timer " .. timer .. "does not exist.", vim.log.levels.ERROR, {})
         return false
     else
-        timer_obj.teardown()
+        obj.teardown()
         M._timers[timer] = nil
         return true
     end
