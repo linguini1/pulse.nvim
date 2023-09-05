@@ -14,6 +14,14 @@ Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
 use { "linguini1/pulse.nvim" }
 ```
 
+Using [lazy.nvim](https://github.com/folke/lazy.nvim)
+```lua
+{
+    "linguini1/pulse.nvim",
+    version = "*", -- Latest stable release
+}
+```
+
 ### Configuration
 
 The configuration for pulse.nvim is very simple. Below is the default configuration. See `:h pulse.setup()` for more
