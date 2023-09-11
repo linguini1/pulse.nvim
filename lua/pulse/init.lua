@@ -72,6 +72,16 @@ M.setup = function(opts)
         vim.print(timer_format(r_hours, r_minutes) .. " remaining on '" .. args.args .. "' timer.")
     end, { nargs = 1, desc = "Prints the remaining time left on the specified timer." })
 
+    vim.api.nvim_create_user_command("PulseSetTimer", function(args)
+        local arguments = vim.split(args.args, " ")
+
+        if M.add(arguments[1], { interval = tonumber(arguments[2]), one_shot = true }) then
+            vim.print("Timer " .. arguments[1] .. " created.")
+        else
+            vim.print("Timer " .. arguments[1] .. " already exists.")
+        end
+    end, { nargs = "+", desc = "Set a single-use timer." })
+
     -- Command to view all timers (otherwise telescope picker)
     local has_telescope, _ = pcall(require, "telescope")
 
@@ -147,10 +157,7 @@ end
 --- @return boolean success False if a timer with the same name exists, true otherwise
 M.add = function(name, opts)
     -- Detect duplicate names
-    if M._timers[name] then
-        vim.notify("Timer with name " .. name .. " already exists!", vim.log.levels.ERROR)
-        return false
-    end
+    if M._timers[name] then return false end
 
     -- Merge options with default options
     opts = vim.tbl_deep_extend("force", {
@@ -183,7 +190,6 @@ end
 M.remove = function(timer)
     local obj = M._timers[timer]
     if not obj then
-        vim.notify("Timer " .. timer .. " does not exist.", vim.log.levels.ERROR, {})
         return false
     else
         obj.teardown()
