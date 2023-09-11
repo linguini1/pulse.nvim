@@ -1,2 +1,2 @@
 test:
-	nvim --headless -c "PlenaryBustedDirectory tests/"
+	nvim --headless --noplugin -u scripts/minimal.lua -c "PlenaryBustedDirectory tests/ {minimal_init = 'tests/minimal_init.vim', sequential = true}"
