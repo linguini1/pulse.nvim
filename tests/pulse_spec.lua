@@ -8,6 +8,7 @@ describe("pulse", function()
     it("can be set up with default options", function()
         local pulse = require("pulse")
         pulse.setup()
+        assert.is_equal(vim.log.levels.INFO, pulse.config.level)
     end)
 
     it("can be set up with notify level as WARN", function()
@@ -16,7 +17,7 @@ describe("pulse", function()
         assert.is_equal(vim.log.levels.WARN, pulse.config.level)
     end)
 
-    it("can have a timer added which is enabled", function()
+    it("can add an enabled timer", function()
         local pulse = require("pulse")
         pulse.setup()
         assert.is_true(pulse.add("test", {
@@ -28,7 +29,7 @@ describe("pulse", function()
         assert.is_true(pulse._timers["test"].enabled())
     end)
 
-    it("can have a timer added which is disabled", function()
+    it("can add a disabled timer", function()
         local pulse = require("pulse")
         pulse.setup()
         assert.is_true(pulse.add("test", {
@@ -40,7 +41,7 @@ describe("pulse", function()
         assert.is_not_true(pulse._timers["test"].enabled())
     end)
 
-    it("cannot have two timers with the same name added", function()
+    it("cannot add two timers with the same name", function()
         local pulse = require("pulse")
         pulse.setup()
         assert.is_true(pulse.add("test", {
@@ -121,5 +122,35 @@ describe("pulse", function()
         local hours, minutes = pulse.status("timer-that-does-not-exist")
         assert.equal(-1, hours)
         assert.equal(-1, minutes)
+    end)
+
+    it("can add a timer with a custom callback", function()
+        local pulse = require("pulse")
+        local went_off = false
+        local timer_name = "test-timer"
+        pulse.setup()
+        assert.is_false(went_off)
+        assert.is_true(pulse.add(timer_name, {
+            interval = 1,
+            cb = function(_) went_off = not went_off end,
+        }))
+        pulse._timers[timer_name]._timer_cb(pulse._timers[timer_name])
+        assert.is_true(went_off)
+    end)
+
+    it("can add a single-use timer", function()
+        local pulse = require("pulse")
+        local went_off = false
+        local timer_name = "test-timer"
+        pulse.setup()
+        assert.is_false(went_off)
+        assert.is_true(pulse.add(timer_name, {
+            interval = 1,
+            cb = function(_) went_off = not went_off end,
+            one_shot = true,
+        }))
+        pulse._timers[timer_name]._timer_cb(pulse._timers[timer_name])
+        assert.is_true(went_off)
+        assert.equal(nil, pulse._timers[timer_name])
     end)
 end)
