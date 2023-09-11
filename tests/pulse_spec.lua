@@ -19,7 +19,11 @@ describe("pulse", function()
     it("can have a timer added which is enabled", function()
         local pulse = require("pulse")
         pulse.setup()
-        assert.is_true(pulse.add("test", 15, "This is a test timer!", true))
+        assert.is_true(pulse.add("test", {
+            interval = 15,
+            message = "This is a test timer!",
+            enabled = true,
+        }))
         assert.is.truthy(pulse._timers["test"])
         assert.is_true(pulse._timers["test"].enabled())
     end)
@@ -27,7 +31,11 @@ describe("pulse", function()
     it("can have a timer added which is disabled", function()
         local pulse = require("pulse")
         pulse.setup()
-        assert.is_true(pulse.add("test", 15, "This is a test timer!", false))
+        assert.is_true(pulse.add("test", {
+            interval = 15,
+            message = "This is a test timer!",
+            enabled = false,
+        }))
         assert.is.truthy(pulse._timers["test"])
         assert.is_not_true(pulse._timers["test"].enabled())
     end)
@@ -35,8 +43,16 @@ describe("pulse", function()
     it("cannot have two timers with the same name added", function()
         local pulse = require("pulse")
         pulse.setup()
-        assert.is_true(pulse.add("test", 30, "This is a test timer!", true))
-        assert.is_not_true(pulse.add("test", 15, "This is another test timer!", false))
+        assert.is_true(pulse.add("test", {
+            interval = 30,
+            message = "This is a test timer!",
+            enabled = true,
+        }))
+        assert.is_not_true(pulse.add("test", {
+            interval = 15,
+            message = "This is another test timer!",
+            enabled = false,
+        }))
         assert.is_true(pulse._timers["test"].enabled())
         assert.is_equal("This is a test timer!", pulse._timers["test"].message)
     end)
@@ -44,7 +60,11 @@ describe("pulse", function()
     it("can remove a timer which has already been added", function()
         local pulse = require("pulse")
         pulse.setup()
-        assert.is_true(pulse.add("test", 30, "This is a test timer!", true))
+        assert.is_true(pulse.add("test", {
+            interval = 30,
+            message = "This is a test timer!",
+            enabled = true,
+        }))
         assert.is_true(pulse.remove("test"))
         assert.is_equal(nil, pulse._timers["test"])
     end)
@@ -58,7 +78,11 @@ describe("pulse", function()
     it("cannot remove a timer which has already been removed", function()
         local pulse = require("pulse")
         pulse.setup()
-        assert.is_true(pulse.add("test", 30, "This is a test timer!", true))
+        assert.is_true(pulse.add("test", {
+            interval = 30,
+            message = "This is a test timer!",
+            enabled = true,
+        }))
         assert.is_true(pulse.remove("test"))
         assert.is_equal(nil, pulse._timers["test"])
         assert.is_false(pulse.remove("test"))
@@ -68,7 +92,11 @@ describe("pulse", function()
     it("returns the correct remaining time for a timer that is enabled", function()
         local pulse = require("pulse")
         pulse.setup()
-        assert.is_true(pulse.add("test", 30, "This is a test timer!", true))
+        assert.is_true(pulse.add("test", {
+            interval = 30,
+            message = "This is a test timer!",
+            enabled = true,
+        }))
         local hours, minutes = pulse.status("test")
         assert.equal(0, hours)
         assert.equal(30, minutes)
@@ -77,7 +105,11 @@ describe("pulse", function()
     it("returns the correct remaining time for a timer that is disabled", function()
         local pulse = require("pulse")
         pulse.setup()
-        assert.is_true(pulse.add("test", 30, "This is a test timer!", false))
+        assert.is_true(pulse.add("test", {
+            interval = 30,
+            message = "This is a test timer!",
+            enabled = false,
+        }))
         local hours, minutes = pulse.status("test")
         assert.equal(0, hours)
         assert.equal(30, minutes)
