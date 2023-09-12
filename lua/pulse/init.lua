@@ -4,7 +4,7 @@ require("pulse._timer")
 --- @field name string | nil The name used to refer to this timer
 --- @field interval integer | nil The timer interval in milliseconds
 --- @field message string | nil The timer message which will be displayed when the timer ends
---- @field level string | nil The vim.log.levels level to use for the notification callbacks
+--- @field level number | nil The vim.log.levels level to use for the notification callbacks
 --- @field enabled boolean | nil True if the timer should start on creation, false otherwise
 --- @field one_shot boolean | nil True if the timer should destroy itself on completion
 --- @field cb fun(timer: Timer) | nil The callback to be executed when the timer expires
@@ -21,7 +21,7 @@ local M = {}
 M._timers = {}
 
 --- @class Options
---- @field level string The log level of the notifications timers produce when they go off.
+--- @field level number The log level of the notifications timers produce when they go off.
 
 --- Initializes the pulse.nvim plugin
 --- @param opts Options | nil The configuration options for pulse.nvim
@@ -152,7 +152,7 @@ M.setup = function(opts)
 end
 
 --- Adds a timer to the listing.
---- @param name str The timer name
+--- @param name string The timer name
 --- @param opts TimerOpts | nil The options for creating the timer (otherwise default opts will be used)
 --- @return boolean success False if a timer with the same name exists, true otherwise
 M.add = function(name, opts)

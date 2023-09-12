@@ -17,6 +17,7 @@ local function hh_mm(minutes) return math.floor(minutes / 60), minutes % 60 end
 --- @field name string The name used to refer to this timer
 --- @field message string The timer message which will be displayed when the timer ends
 --- @field _enabled boolean Whether the timer is enabled or not
+--- @field _level number The log level of the notification produced when the timer ends
 --- @field _timer VimTimer The vim timer which is used to keep this timer going
 --- @field _timer_cb function The callback function which is executed when the timer ends
 --- @field __index Timer The vim timer which is used to keep this timer going
@@ -33,7 +34,7 @@ local function hh_mm(minutes) return math.floor(minutes / 60), minutes % 60 end
 --- @param interval integer The timer interval in minutes
 --- @param message string The timer message which will be displayed when the timer ends
 --- @param enabled boolean True if the timer should start on creation, false otherwise
---- @param level string The log level of the notification produced when the timer ends
+--- @param level number The log level of the notification produced when the timer ends
 --- @param cb fun(timer: Timer) | nil The callback executed when the timer expires. If nil, uses a default notification
 --- @return Timer
 function Timer(name, interval, message, enabled, level, cb)
