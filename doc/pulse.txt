@@ -9,11 +9,11 @@ pulse.setup({opts})                                              *pulse.setup()*
     Setup function to be run by user. Configures the defaults of pulse.
 
     Parameters: ~
-      - {opts}  Options dict (optional):
-                - level (optional) Pick from a level listed in |vim.log.levels|
-
-    Return: ~
-        nil
+      - {opts}  (table) optional:
+                - level (number) optional: Pick a level from |vim.log.levels|.
+                  This will be the default `level` value to use when adding new
+                  timers but can still be overridden by specifying a specific
+                  `level` value in |pulse.add()|.
 
     Usage: ~
     >lua
@@ -22,18 +22,35 @@ pulse.setup({opts})                                              *pulse.setup()*
             level = vim.log.levels.INFO,
         })
 <
-pulse.add({name}, {interval}, {message}, {enabled})                *pulse.add()*
+pulse.add({name}, {*opts})                                         *pulse.add()*
     Add a new timer to the pulse timer listing. Adding a timer with a name
     already associated with an existing timer will result in an error, and the
     function will return false.
 
     Parameters: ~
       - {name} (string) The name of the timer.
-      - {interval} (integer) The timer's interval (how often it will go off)
-        in minutes.
-      - {message} (string) The message passed to |vim.notify| when the timer
-        goes off.
-      - {enabled} (boolean) True to enable the timer as soon as it's added.
+      - {opts} (table) optional: The options to pass on to the timer.
+               - `interval `(integer) optional: The interval for the timer in
+                 minutes. The default value is 30.
+               - `enabled `(boolean) optional: Whether or not the timer should
+                 be enabled (start counting down) after creation. Defaults to
+                 true.
+               - `message `(string) optional: The message to display via
+                 |vim.notify| once the timer expires. Defaults to:
+                 `"`{name}` went off!"`. Note that this value is only used if
+                 a custom callback for the `cb` option is not set.
+               - `level `(number) optional: The log level to use for
+                 |vim.notify|, selected from |vim.log.levels|. Default value is
+                 `INFO`. This value is unused if a custom callback is set.
+               - `one_shot `(boolean) optional: Whether or not this timer should
+                 delete itself once it has gone off once (see |one-shot|). Defaults
+                 to false. If a custom callback has been set for the `cb` option,
+                 |pulse.nvim| will call the custom callback first and then
+                 delete the timer.
+               - `cb `(function) optional: A custom callback to be executed when
+                 the timer goes off. It must take a single argument, `timer`,
+                 which is a |PulseTimer| object. Defaults to displaying
+                 `message` via |vim.notify|.
 
     Return: ~
         (boolean) True if the timer was added successfully, false if a
@@ -42,7 +59,11 @@ pulse.add({name}, {interval}, {message}, {enabled})                *pulse.add()*
     Usage: ~
     >lua
         local pulse = require("pulse")
-        pulse.add("break-timer", 60, "Take a break!", true)
+        pulse.add("break-timer", {
+            interval = 60,
+            message = "Take a break!",
+            level = vim.log.levels.WARN
+        })
 <
 pulse.remove({timer})                                           *pulse.remove()*
     Remove an existing timer from the pulse timer listing. Calling remove with
@@ -62,6 +83,156 @@ pulse.remove({timer})                                           *pulse.remove()*
         local pulse = require("pulse")
         pulse.remove("break-timer")
 <
+==============================================================================
+PULSE TIMERS                                                      *pulse-timers*
+
+This help document specifies the API used to interact with the timer type
+|PulseTimer|, which is necessary for building custom callbacks to use in your
+timers (see |pulse.add()|).
+
+All timer callbacks must take one argument, which is a timer of type
+|PulseTimer|. This allows you to interact with the timer from your callback.
+
+                                                                    *PulseTimer*
+PulseTimer.name (`string`)                                       *PulseTimer.name*
+    The name of the timer.
+
+PulseTimer.message (`string`)                                 *PulseTimer.message*
+    The timer's message, which is displayed by default when it goes off
+    (unless a custom callback has been provided).
+
+PulseTimer.enabled()                                       *PulseTimer.enabled()*
+    Fetches the enabled status of the timer.
+
+    Return: ~
+        (boolean) The enabled status of the timer.
+
+    Usage: ~
+    >lua
+        if timer.enabled() then
+            vim.print("Timer " .. timer.name .. " is enabled!")
+        end
+<
+PulseTimer.enable()                                         *PulseTimer.enable()*
+    Enables the timer.
+
+    Return: ~
+        (boolean) If the timer was successfully enabled (would be false if the
+        timer was already enabled).
+
+    Usage: ~
+    >lua
+        if timer.enable() then
+            vim.print("Turned on " .. timer.name .. "!")
+        else
+            vim.print("Timer " .. timer.name .. " was already enabled!")
+        end
+<
+PulseTimer.disable()                                       *PulseTimer.disable()*
+    Disables the timer.
+
+    Return: ~
+        (boolean) If the timer was successfully disabled (would be false if
+        the timer was already enabled).
+
+    Usage: ~
+    >lua
+        if timer.disable() then
+            vim.print("Turned off " .. timer.name .. "!")
+        else
+            vim.print("Timer " .. timer.name .. " was already disabled!")
+        end
+<
+PulseTimer.toggle()                                         *PulseTimer.toggle()*
+    Toggles the timer's enabled status.
+
+    Return: ~
+        (boolean) The enabled status of the timer.
+
+    Usage: ~
+    >lua
+        if timer.toggle() then
+            vim.print("Timer " .. timer.name .. " is enabled!")
+        else
+            vim.print("Timer " .. timer.name .. " is disabled!")
+        end
+<
+PulseTimer.change_interval({intvl})                *PulseTimer.change_interval()*
+    Changes the timer's interval for the next cycle.
+
+    Parameters: ~
+        - {intvl} (integer) The timer's new interval in minutes.
+
+    Usage: ~
+    >lua
+    -- Timer's interval will be set to 30 minutes once it next goes off
+    timer.change_interval(30)
+<
+PulseTimer.remaining()                                   *PulseTimer.remaining()*
+    Fetches the remaining time left until the timer goes off in hours and
+    minutes (rounded up).
+
+    Return: ~
+        `hours` (integer) The hours - odd minutes of remaining time on the
+        timer.
+        `minutes` (integer) The odd minutes of remaining time on the timer.
+
+    Usage: ~
+    >lua
+    -- For a timer with 61 minutes remaining, minutes = 1, hours = 1
+    local hours, minutes = timer.remaining()
+<
+PulseTimer.teardown()                                       *PulseTimer.toggle()*
+    Closes & disables the timer internals so that the reference to the timer
+    can safely be set to `nil`.
+
+    Usage: ~
+    >lua
+    if done_with_timer then
+        vim.print("Goodbye " .. timer.name .. "!")
+        timer.teardown()
+        timer = nil
+    end
+<
+==============================================================================
+ONE-SHOT TIMERS                                                       *one-shot*
+
+Pulse's |one-shot| timers are meant as single-use timers or reminders that you
+might be used to setting in daily life.
+
+The philosophy for |one-shot| timers is that users should be able to set these
+reminders in their editor to avoid depending on an external device (like a
+phone, OS reminder, etc.) which might disabled when "in the zone" to avoid
+other distracting notifications.
+
+Of course, you could use an analog timer, but I definitely don't have one of
+those within arm's reach of my desk.
+
+Adding a one-shot timer: ~
+
+In order to add a basic |one-shot| timer, you might do something like the
+following:
+>lua
+    local pulse = require("pulse")
+    pulse.add("example-one-shot", {
+        one_shot = true,
+        interval = 15,
+        message = "This is an example one-shot timer!"
+    })
+<
+This will create a |one-shot| timer that will expire in 15 minutes and display
+the above message. Once the timer expires, it will be deleted entirely and no
+longer visible in |:PulseList|.
+
+You may also opt to use the provided user command, |:PulseSetTimer|. You can
+achieve a similar result using:
+>vim
+    :PulseSetTimer example-one-shot 15
+<
+Note that in this example, the message displayed when the timer expires will
+be the default message (specified in |pulse.add()|) instead of the custom one
+in the first example.
+
 ==============================================================================
 COMMANDS                                                        *pulse-commands*
 
@@ -167,5 +338,12 @@ pulse.pick_timers({opts})                                  *pulse.pick_timers()*
 <
     Hitting enter on a timer entry in the Telescope picker will toggle the
     timer's enabled status.
+
+:PulseSetTimer {name} {interval}                                *:PulseSetTimer*
+    Creates a new |one-shot| timer with the given {name}, which will go off
+    after {interval} minutes. The timer will display the default message
+    specified by |pulse.add()|. >vim
+    :PulseSetTimer walk-dog 40
+<
 
  vim:tw=78:ts=8:ft=help:norl:

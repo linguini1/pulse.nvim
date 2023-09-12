@@ -1,4 +1,12 @@
-require("pulse._timer")
+local Timer = require("pulse._timer")
+
+--- @class TimerOpts
+--- @field interval integer | nil The timer interval in milliseconds
+--- @field message string | nil The timer message which will be displayed when the timer ends
+--- @field level number | nil The vim.log.levels level to use for the notification callbacks
+--- @field enabled boolean | nil True if the timer should start on creation, false otherwise
+--- @field one_shot boolean | nil True if the timer should destroy itself on completion
+--- @field cb fun(timer: Timer) | nil The callback to be executed when the timer expires
 
 --- Returns a string formatted as 'HH:MM'
 --- @param minutes integer The minutes.
@@ -12,12 +20,16 @@ local M = {}
 M._timers = {}
 
 --- @class Options
---- @field level string The log level of the notifications timers produce when they go off.
+--- @field level number The log level of the notifications timers produce when they go off.
 
 --- Initializes the pulse.nvim plugin
+--- @param opts Options | nil The configuration options for pulse.nvim
 --- @return nil
 M.setup = function(opts)
-    M.config = opts or { level = vim.log.levels.INFO }
+    --- @type Options
+    M.config = vim.tbl_deep_extend("force", {
+        level = vim.log.levels.INFO,
+    }, opts or {})
 
     -- User commands for interacting with the pulse module
     vim.api.nvim_create_user_command("PulseEnable", function(args)
@@ -58,6 +70,17 @@ M.setup = function(opts)
         end
         vim.print(timer_format(r_hours, r_minutes) .. " remaining on '" .. args.args .. "' timer.")
     end, { nargs = 1, desc = "Prints the remaining time left on the specified timer." })
+
+    vim.api.nvim_create_user_command("PulseSetTimer", function(args)
+        local arguments = vim.split(args.args, " ")
+        if #arguments ~= 2 then error("PulseSetTimer takes 2 arguments.") end
+
+        if M.add(arguments[1], { interval = tonumber(arguments[2]), one_shot = true }) then
+            vim.print("Timer " .. arguments[1] .. " created.")
+        else
+            vim.print("Timer " .. arguments[1] .. " already exists.")
+        end
+    end, { nargs = "+", desc = "Set a single-use timer." })
 
     -- Command to view all timers (otherwise telescope picker)
     local has_telescope, _ = pcall(require, "telescope")
@@ -129,17 +152,35 @@ M.setup = function(opts)
 end
 
 --- Adds a timer to the listing.
---- @param name string The name used to refer to this timer
---- @param interval integer The timer interval in milliseconds
---- @param message string The timer message which will be displayed when the timer ends
---- @param enabled boolean True if the timer should start on creation, false otherwise
+--- @param name string The timer name
+--- @param opts TimerOpts | nil The options for creating the timer (otherwise default opts will be used)
 --- @return boolean success False if a timer with the same name exists, true otherwise
-M.add = function(name, interval, message, enabled)
-    if M._timers[name] then
-        vim.notify("Timer with name " .. name .. " already exists!", vim.log.levels.ERROR)
-        return false
+M.add = function(name, opts)
+    -- Detect duplicate names
+    if M._timers[name] then return false end
+
+    -- Merge options with default options
+    opts = vim.tbl_deep_extend("force", {
+        interval = 30,
+        enabled = true,
+        message = name .. " went off!",
+        one_shot = false,
+        level = M.config.level,
+        cb = function(timer) vim.api.nvim_notify(timer.message, timer._level, {}) end,
+    }, opts or {})
+
+    -- Set up one-shot callback
+    if opts.one_shot then
+        local stored_cb = opts.cb
+        --- @param timer Timer
+        opts.cb = function(timer)
+            if stored_cb then stored_cb(timer) end -- Call user cb
+            timer.teardown()
+            M._timers[timer.name] = nil
+        end
     end
-    M._timers[name] = Timer(name, interval, message, enabled, M.config.level)
+
+    M._timers[name] = Timer(name, opts.interval, opts.message, opts.enabled, opts.level, opts.cb)
     return true
 end
 
@@ -149,7 +190,6 @@ end
 M.remove = function(timer)
     local obj = M._timers[timer]
     if not obj then
-        vim.notify("Timer " .. timer .. "does not exist.", vim.log.levels.ERROR, {})
         return false
     else
         obj.teardown()
@@ -163,7 +203,7 @@ end
 --- @return boolean success True if the timer was enabled successfully.
 M.enable = function(timer)
     local timer_obj = M._timers[timer]
-    if not timer then return false end
+    if not timer_obj then return false end
     return timer_obj.enable()
 end
 
