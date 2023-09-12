@@ -37,7 +37,7 @@ local function hh_mm(minutes) return math.floor(minutes / 60), minutes % 60 end
 --- @param level number The log level of the notification produced when the timer ends
 --- @param cb fun(timer: Timer) | nil The callback executed when the timer expires. If nil, uses a default notification
 --- @return Timer
-function Timer(name, interval, message, enabled, level, cb)
+local function Timer(name, interval, message, enabled, level, cb)
     local self = {}
     self.name = name
     self.message = message
@@ -89,7 +89,7 @@ function Timer(name, interval, message, enabled, level, cb)
     --- @return integer minutes_remaining The odd minutes left before the timer ends
     --- @return integer hours_remaining The hours - minutes left before the timer ends
     self.remaining = function()
-        local minutes = math.ceil(self._timer:get_repeat() / 60000)
+        local minutes = math.ceil(self._timer:get_due_in() / 60000)
         return hh_mm(minutes)
     end
 
@@ -104,3 +104,5 @@ function Timer(name, interval, message, enabled, level, cb)
     if not enabled then self.disable() end -- Start disabled
     return self
 end
+
+return Timer

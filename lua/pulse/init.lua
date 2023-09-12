@@ -1,4 +1,4 @@
-require("pulse._timer")
+local Timer = require("pulse._timer")
 
 --- @class TimerOpts
 --- @field interval integer | nil The timer interval in milliseconds
