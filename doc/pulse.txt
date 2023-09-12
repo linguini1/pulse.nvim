@@ -182,7 +182,7 @@ PulseTimer.remaining()                                   *PulseTimer.remaining()
     -- For a timer with 61 minutes remaining, minutes = 1, hours = 1
     local hours, minutes = timer.remaining()
 <
-PulseTimer.teardown()                                       *PulseTimer.toggle()*
+PulseTimer.teardown()                                      *PulseTimer.teardown()*
     Closes & disables the timer internals so that the reference to the timer
     can safely be set to `nil`.
 
