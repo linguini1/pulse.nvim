@@ -1,7 +1,9 @@
 assert = require("luassert")
 
+local function unload_pulse() package.loaded["pulse"] = nil end
+
 describe("pulse", function()
-    before_each(function() package.loaded["pulse"] = nil end) -- Unload pulse for each test
+    before_each(unload_pulse)
 
     it("can be required", function() assert.is_true(pcall(require, "pulse")) end)
 

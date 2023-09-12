@@ -173,14 +173,14 @@ PulseTimer.remaining()                                   *PulseTimer.remaining()
     minutes (rounded up).
 
     Return: ~
-        `minutes` (integer) The odd minutes of remaining time on the timer.
         `hours` (integer) The hours - odd minutes of remaining time on the
         timer.
+        `minutes` (integer) The odd minutes of remaining time on the timer.
 
     Usage: ~
     >lua
     -- For a timer with 61 minutes remaining, minutes = 1, hours = 1
-    local minutes, hours = timer.remaining()
+    local hours, minutes = timer.remaining()
 <
 PulseTimer.teardown()                                       *PulseTimer.toggle()*
     Closes & disables the timer internals so that the reference to the timer
