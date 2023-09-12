@@ -73,9 +73,7 @@ M.setup = function(opts)
 
     vim.api.nvim_create_user_command("PulseSetTimer", function(args)
         local arguments = vim.split(args.args, " ")
-        if #arguments ~= 2 then
-            error("PulseSetTimer takes 2 arguments.")
-        end
+        if #arguments ~= 2 then error("PulseSetTimer takes 2 arguments.") end
 
         if M.add(arguments[1], { interval = tonumber(arguments[2]), one_shot = true }) then
             vim.print("Timer " .. arguments[1] .. " created.")
