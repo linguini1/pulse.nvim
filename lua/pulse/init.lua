@@ -1,7 +1,6 @@
 require("pulse._timer")
 
 --- @class TimerOpts
---- @field name string | nil The name used to refer to this timer
 --- @field interval integer | nil The timer interval in milliseconds
 --- @field message string | nil The timer message which will be displayed when the timer ends
 --- @field level number | nil The vim.log.levels level to use for the notification callbacks
