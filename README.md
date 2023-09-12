@@ -36,6 +36,7 @@ information.
 
 ```lua
 local pulse = require("pulse")
+--- Default configuration settings
 pulse.setup({
     level = vim.log.levels.INFO,
 })
@@ -45,7 +46,11 @@ Once you have `setup` pulse.nvim, you can add timers using the below format. See
 
 ```lua
 --- Parameters: name, interval, message, enabled
-pulse.add("break-timer", 60, "Take a break!", true)
+pulse.add("break-timer", {
+    interval = 60,
+    message = "Take a break!",
+    enabled = true
+})
 ```
 
 ## Documentation
