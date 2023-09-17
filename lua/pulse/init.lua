@@ -47,7 +47,17 @@ M.setup = function(opts)
             vim.print("Timer '" .. timer .. "' is already enabled.")
             ::continue::
         end
-    end, { nargs = "+", desc = "Enables the timers with the matching name." })
+    end, {
+        nargs = "+",
+        desc = "Enables the timers with the matching name.",
+        complete = function(_, _, _)
+            local timer_names = {}
+            for k, v in pairs(M._timers) do
+                if not v.enabled() then table.insert(timer_names, k) end
+            end
+            return timer_names
+        end,
+    })
 
     vim.api.nvim_create_user_command("PulseDisable", function(args)
         for _, timer in ipairs(args.fargs) do
@@ -65,7 +75,17 @@ M.setup = function(opts)
             vim.print("Timer '" .. timer .. "' is already disabled.")
             ::continue::
         end
-    end, { nargs = "+", desc = "Disables the timers with the matching name." })
+    end, {
+        nargs = "+",
+        desc = "Disables the timers with the matching name.",
+        complete = function(_, _, _)
+            local timer_names = {}
+            for k, v in pairs(M._timers) do
+                if v.enabled() then table.insert(timer_names, k) end
+            end
+            return timer_names
+        end,
+    })
 
     vim.api.nvim_create_user_command("PulseStatus", function(args)
         local r_hours, r_minutes = M.status(args.args)
@@ -74,7 +94,17 @@ M.setup = function(opts)
             return
         end
         vim.print(timer_format(r_hours, r_minutes) .. " remaining on '" .. args.args .. "' timer.")
-    end, { nargs = 1, desc = "Prints the remaining time left on the specified timer." })
+    end, {
+        nargs = 1,
+        desc = "Prints the remaining time left on the specified timer.",
+        complete = function(_, _, _)
+            local timer_names = {}
+            for k, _ in pairs(M._timers) do
+                table.insert(timer_names, k)
+            end
+            return timer_names
+        end,
+    })
 
     vim.api.nvim_create_user_command("PulseSetTimer", function(args)
         local arguments = vim.split(args.args, " ")
