@@ -253,7 +253,9 @@ describe("PulseDisable", function()
             end
         end
 
-        vim.cmd("PulseDisable " .. table.concat(vim.tbl_map(function(timer) return timer.name end, timer_settings), " "))
+        vim.cmd(
+            "PulseDisable " .. table.concat(vim.tbl_map(function(timer) return timer.name end, timer_settings), " ")
+        )
 
         for _, timer in ipairs(timer_settings) do
             if not timer.dne then
