@@ -33,34 +33,59 @@ M.setup = function(opts)
 
     -- User commands for interacting with the pulse module
     vim.api.nvim_create_user_command("PulseEnable", function(args)
-        local success = M.enable(args.args)
+        for _, timer in ipairs(args.fargs) do
+            local success = M.enable(timer)
+            if success then
+                vim.print("Timer '" .. timer .. "' enabled.")
+                goto continue
+            end
 
-        if success then
-            vim.print("Timer '" .. args.args .. "' enabled.")
-            return
+            if not success and not M._timers[timer] then
+                vim.print("Timer '" .. timer .. "' does not exist.")
+                goto continue
+            end
+            vim.print("Timer '" .. timer .. "' is already enabled.")
+            ::continue::
         end
-
-        if not success and not M._timers[args.args] then
-            vim.print("Timer '" .. args.args .. "' does not exist.")
-            return
-        end
-        vim.print("Timer '" .. args.args .. "' is already enabled.")
-    end, { nargs = 1, desc = "Enables the timer with the matching name." })
+    end, {
+        nargs = "+",
+        desc = "Enables the timers with the matching name.",
+        complete = function(_, _, _)
+            local timer_names = {}
+            for k, v in pairs(M._timers) do
+                if not v.enabled() then table.insert(timer_names, k) end
+            end
+            return timer_names
+        end,
+    })
 
     vim.api.nvim_create_user_command("PulseDisable", function(args)
-        local success = M.disable(args.args)
+        for _, timer in ipairs(args.fargs) do
+            local success = M.disable(timer)
 
-        if success then
-            vim.print("Timer '" .. args.args .. "' disabled.")
-            return
-        end
+            if success then
+                vim.print("Timer '" .. timer .. "' disabled.")
+                goto continue
+            end
 
-        if not success and not M._timers[args.args] then
-            vim.print("Timer '" .. args.args .. "' does not exist.")
-            return
+            if not success and not M._timers[timer] then
+                vim.print("Timer '" .. timer .. "' does not exist.")
+                goto continue
+            end
+            vim.print("Timer '" .. timer .. "' is already disabled.")
+            ::continue::
         end
-        vim.print("Timer '" .. args.args .. "' is already disabled.")
-    end, { nargs = 1, desc = "Disables the timer with the matching name." })
+    end, {
+        nargs = "+",
+        desc = "Disables the timers with the matching name.",
+        complete = function(_, _, _)
+            local timer_names = {}
+            for k, v in pairs(M._timers) do
+                if v.enabled() then table.insert(timer_names, k) end
+            end
+            return timer_names
+        end,
+    })
 
     vim.api.nvim_create_user_command("PulseStatus", function(args)
         local r_hours, r_minutes = M.status(args.args)
@@ -69,7 +94,17 @@ M.setup = function(opts)
             return
         end
         vim.print(timer_format(r_hours, r_minutes) .. " remaining on '" .. args.args .. "' timer.")
-    end, { nargs = 1, desc = "Prints the remaining time left on the specified timer." })
+    end, {
+        nargs = 1,
+        desc = "Prints the remaining time left on the specified timer.",
+        complete = function(_, _, _)
+            local timer_names = {}
+            for k, _ in pairs(M._timers) do
+                table.insert(timer_names, k)
+            end
+            return timer_names
+        end,
+    })
 
     vim.api.nvim_create_user_command("PulseSetTimer", function(args)
         local arguments = vim.split(args.args, " ")
