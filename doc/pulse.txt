@@ -256,9 +256,10 @@ pulse.enable({timer})                                           *pulse.enable()*
         end
 <
 
-:PulseEnable {timer}                                              *:PulseEnable*
-    Enables the timer with the matching name, otherwise reports failure. >vim
+:PulseEnable {timers}                                             *:PulseEnable*
+    Enables the timers with the matching name, otherwise reports failure. >vim
     :PulseEnable break-timer
+    :PulseEnable timer-one timer-two
 <
 pulse.disable({timer})                                         *pulse.disable()*
     Disables the timer with the matching name.
@@ -277,9 +278,10 @@ pulse.disable({timer})                                         *pulse.disable()*
             vim.print("Something went wrong!")
         end
 <
-:PulseDisable {timer}                                            *:PulseDisable*
-    Disables the timer with the matching name, otherwise reports failure. >vim
+:PulseDisable {timers}                                           *:PulseDisable*
+    Disables the timers with the matching name, otherwise reports failure. >vim
     :PulseDisable break-timer
+    :PulseDisable timer-one timer-two
 <
 pulse.status({timer})                                           *pulse.status()*
     Returns the amount of time remaining before the specified timer goes off,
