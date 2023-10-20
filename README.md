@@ -17,7 +17,10 @@ for managing your timers.
 Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
 
 ```lua
-use { "linguini1/pulse.nvim" }
+use {
+    "linguini1/pulse.nvim",
+    config = function() require("pulse").setup() end -- Call setup to get the basic config
+}
 ```
 
 Using [lazy.nvim](https://github.com/folke/lazy.nvim)
@@ -26,8 +29,11 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim)
 {
     "linguini1/pulse.nvim",
     version = "*", -- Latest stable release
+    config = function() require("pulse").setup() end -- Call setup to get the basic config
 }
 ```
+
+You must call `pulse.setup()` in order to get access to the editor commands and default functionality.
 
 ### Configuration
 
