@@ -33,7 +33,7 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim)
 }
 ```
 
-You must call `pulse.setup()` in order to get access to the editor commands and default functionality.
+You must call `setup()` in order to get access to the editor commands and default functionality.
 
 ### Configuration
 
@@ -51,7 +51,8 @@ pulse.setup({
 Once you have `setup` pulse.nvim, you can add timers using the below format. See `:h pulse.add()` for more information.
 
 ```lua
---- Parameters: name, interval, message, enabled
+local pulse = require("pulse")
+pulse.setup()
 pulse.add("break-timer", {
     interval = 60,
     message = "Take a break!",
