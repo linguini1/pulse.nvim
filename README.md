@@ -17,7 +17,10 @@ for managing your timers.
 Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
 
 ```lua
-use { "linguini1/pulse.nvim" }
+use {
+    "linguini1/pulse.nvim",
+    config = function() require("pulse").setup() end -- Call setup to get the basic config
+}
 ```
 
 Using [lazy.nvim](https://github.com/folke/lazy.nvim)
@@ -26,8 +29,11 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim)
 {
     "linguini1/pulse.nvim",
     version = "*", -- Latest stable release
+    config = function() require("pulse").setup() end -- Call setup to get the basic config
 }
 ```
+
+You must call `setup()` in order to get access to the editor commands and default functionality.
 
 ### Configuration
 
@@ -45,7 +51,8 @@ pulse.setup({
 Once you have `setup` pulse.nvim, you can add timers using the below format. See `:h pulse.add()` for more information.
 
 ```lua
---- Parameters: name, interval, message, enabled
+local pulse = require("pulse")
+pulse.setup()
 pulse.add("break-timer", {
     interval = 60,
     message = "Take a break!",
