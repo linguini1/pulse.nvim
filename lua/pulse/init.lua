@@ -202,7 +202,8 @@ M.add = function(name, opts)
         one_shot = false,
         level = M.config.level,
         cb = function(timer)
-		  vim.notify(timer.message, timer._level, {Title = "Notification Title"})
+		  require("notify")(timer.message, timer._level, {Title = "NotifyTitle"})
+		  -- vim.notify(timer.message, timer._level, {Title = "Notification Title"})
 		  end,
 	  -- vim.api.nvim_notify(timer.message, timer._level, {}) end,
     }, opts or {})
