@@ -201,7 +201,10 @@ M.add = function(name, opts)
         message = name .. " went off!",
         one_shot = false,
         level = M.config.level,
-        cb = function(timer) vim.api.nvim_notify(timer.message, timer._level, {}) end,
+        cb = function(timer)
+		  vim.notify(timer.message, timer._level, {Title = "Notification Title"})
+		  end,
+	  -- vim.api.nvim_notify(timer.message, timer._level, {}) end,
     }, opts or {})
 
     -- Set up one-shot callback
