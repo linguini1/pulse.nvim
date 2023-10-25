@@ -1,4 +1,5 @@
 local Timer = require("pulse._timer")
+local notify = require("notify")
 
 --- @class TimerOpts
 --- @field interval integer | nil The timer interval in milliseconds
@@ -202,7 +203,10 @@ M.add = function(name, opts)
         one_shot = false,
         level = M.config.level,
         cb = function(timer)
-		  require("notify")(timer.message, timer._level, {Title = "NotifyTitle"})
+		  notify({ timer.message }, timer._level, {
+			title = 'Pulse | ' .. timer.message,
+		  })
+		  -- require("notify")(timer.message, timer._level, {Title = "NotifyTitle"})
 		  -- vim.notify(timer.message, timer._level, {Title = "Notification Title"})
 		  end,
 	  -- vim.api.nvim_notify(timer.message, timer._level, {}) end,
