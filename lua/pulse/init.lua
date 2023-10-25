@@ -204,12 +204,9 @@ M.add = function(name, opts)
         level = M.config.level,
         cb = function(timer)
 		  notify({ timer.message }, timer._level, {
-			title = 'Pulse | ' .. timer.message,
+			title = 'Pulse Timer | .. ' timer.name,
 		  })
-		  -- require("notify")(timer.message, timer._level, {Title = "NotifyTitle"})
-		  -- vim.notify(timer.message, timer._level, {Title = "Notification Title"})
 		  end,
-	  -- vim.api.nvim_notify(timer.message, timer._level, {}) end,
     }, opts or {})
 
     -- Set up one-shot callback
